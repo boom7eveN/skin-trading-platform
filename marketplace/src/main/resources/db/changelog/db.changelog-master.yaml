@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - include:
+      file: changes/001_create_user_table.sql
+  - include:
+      file: changes/002_create_skins_table.sql
+  - include:
+      file: changes/003_create_market_items.sql

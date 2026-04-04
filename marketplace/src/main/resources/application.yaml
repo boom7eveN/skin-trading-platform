@@ -1,3 +1,7 @@
 spring:
   application:
     name: marketplace
+  datasource:
+    url: jdbc:postgresql://localhost:5432/skins-marketplace
+    username: postgres
+    password: P@ssw0rd
