@@ -5,3 +5,5 @@ spring:
     url: jdbc:postgresql://localhost:5432/skins-marketplace
     username: postgres
     password: P@ssw0rd
+  liquibase:
+    drop-first: true

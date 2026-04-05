@@ -5,5 +5,6 @@ CREATE TABLE skins
     weapon_type VARCHAR(100)   NOT NULL,
     rarity      VARCHAR(50)    NOT NULL,
     base_price  DECIMAL(15, 2) NOT NULL,
-    version     BIGINT         NOT NULL DEFAULT 0
+    version     BIGINT         NOT NULL DEFAULT 0,
+    CONSTRAINT uk_skin_name_weapon_type_rarity UNIQUE (name, weapon_type, rarity)
 );
