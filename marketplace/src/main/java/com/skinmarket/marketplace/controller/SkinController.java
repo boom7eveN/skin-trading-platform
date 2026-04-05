@@ -1,9 +1,11 @@
 package com.skinmarket.marketplace.controller;
 
 import com.skinmarket.marketplace.dto.CreateSkinRequest;
+import com.skinmarket.marketplace.dto.PaginationResult;
 import com.skinmarket.marketplace.dto.SkinResponse;
 import com.skinmarket.marketplace.dto.UpdateSkinRequest;
 import com.skinmarket.marketplace.service.SkinService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -42,6 +44,15 @@ public class SkinController {
     @DeleteMapping("/{id}")
     public void deleteSkinById(@PathVariable UUID id) {
         skinService.deleteSkinById(id);
+    }
+
+    @GetMapping("/paged")
+    public ResponseEntity<PaginationResult<SkinResponse>> getSkinsWithPagination(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        PaginationResult<SkinResponse> result = skinService.findAllSkinsWithPagination(page, size);
+        return ResponseEntity.ok(result);
     }
 }
 

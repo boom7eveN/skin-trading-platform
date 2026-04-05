@@ -1,5 +1,6 @@
-package com.skinmarket.marketplace;
+package com.skinmarket.marketplace.repository;
 
+import com.skinmarket.marketplace.dto.PaginationResult;
 import com.skinmarket.marketplace.entity.Skin;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -86,6 +87,31 @@ public class SkinRepository {
     public boolean deleteSkinById(UUID id) {
         String sql = "DELETE FROM skins WHERE id = :id;";
         return namedParameterJdbcTemplate.update(sql, Map.of("id", id)) == 1;
+    }
+
+
+    public PaginationResult<Skin> findAllSkinsWithPagination(int page, int size) {
+        int offset = (page - 1) * size;
+
+        String dataSql = """
+                    SELECT id, name, weapon_type, rarity, base_price, version 
+                    FROM skins 
+                    ORDER BY name
+                    LIMIT :limit 
+                    OFFSET :offset
+                """;
+
+        String countSql = "SELECT COUNT(*) FROM skins";
+
+        Map<String, Object> params = Map.of(
+                "limit", size,
+                "offset", offset
+        );
+
+        List<Skin> content = namedParameterJdbcTemplate.query(dataSql, params, SKIN_ROW_MAPPER);
+        Integer totalElements = namedParameterJdbcTemplate.queryForObject(countSql, Map.of(), Integer.class);
+
+        return new PaginationResult<Skin>(content, page, size, totalElements);
     }
 
 

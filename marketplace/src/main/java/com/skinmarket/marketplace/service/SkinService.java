@@ -1,6 +1,7 @@
 package com.skinmarket.marketplace.service;
 
-import com.skinmarket.marketplace.SkinRepository;
+import com.skinmarket.marketplace.dto.PaginationResult;
+import com.skinmarket.marketplace.repository.SkinRepository;
 import com.skinmarket.marketplace.dto.CreateSkinRequest;
 import com.skinmarket.marketplace.dto.SkinResponse;
 import com.skinmarket.marketplace.dto.UpdateSkinRequest;
@@ -124,5 +125,23 @@ public class SkinService {
                     String.format("Failed to delete skin with id %s", id)
             );
         }
+    }
+
+    @Transactional
+    public PaginationResult<SkinResponse> findAllSkinsWithPagination(int page, int size) {
+        if (page < 1) page = 1;
+        if (size < 1) size = 20;
+        if (size > 50) size = 50;
+
+        PaginationResult<Skin> paginationResult = skinRepository.findAllSkinsWithPagination(page, size);
+
+        List<SkinResponse> responses = SkinMapper.toListResponses(paginationResult.items());
+
+        return new PaginationResult<>(
+                responses,
+                paginationResult.page(),
+                paginationResult.size(),
+                paginationResult.totalElements()
+        );
     }
 }
