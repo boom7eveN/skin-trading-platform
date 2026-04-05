@@ -1,0 +1,5 @@
+spring:
+  datasource:
+    url: ${MARKET_DB_URL}
+    username: ${MARKET_DB_USERNAME}
+    password: ${MARKET_DB_PASSWORD}

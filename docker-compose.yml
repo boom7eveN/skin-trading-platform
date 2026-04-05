@@ -1,0 +1,30 @@
+services:
+  market-db:
+    image: postgres:15
+    container_name: market-db
+    environment:
+      POSTGRES_DB: market_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: P@ssw0rd
+    ports:
+      - "5432:5432"
+    volumes:
+      - market-db-data:/var/lib/postgresql/data
+
+  marketplace:
+    build:
+      context: ./marketplace
+      dockerfile: Dockerfile
+    container_name: marketplace
+    depends_on:
+      - market-db
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      MARKET_DB_URL: jdbc:postgresql://market-db:5432/market_db
+      MARKET_DB_USERNAME: postgres
+      MARKET_DB_PASSWORD: P@ssw0rd
+    ports:
+      - "8080:8080"
+
+volumes:
+  market-db-data:
