@@ -23,6 +23,10 @@ services:
       MARKET_DB_URL: jdbc:postgresql://market-db:5432/market_db
       MARKET_DB_USERNAME: postgres
       MARKET_DB_PASSWORD: P@ssw0rd
+      JWT_SECRET: "aB3dE5fG7hJ9kL1nP2rT4vW6xY8zA0cC2eE4gG6iI8kK0mM"
+      JWT_EXPIRATION: 86400000
+      ADMIN_USERNAME: "ADMIN"
+      ADMIN_PASSWORD: "ADMIN"
     ports:
       - "8080:8080"
 

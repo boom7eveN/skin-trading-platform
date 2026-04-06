@@ -56,7 +56,6 @@ public class SkinRepository {
                         "version", skin.version()
                 )
         ) == 1;
-
     }
 
     public boolean updateSkinWithOptimisticLock(Skin skin) {

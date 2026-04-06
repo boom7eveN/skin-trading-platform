@@ -37,8 +37,9 @@ public class ControllerAdvice {
 
     private HttpStatus mapToHttpStatus(ErrorCode errorCode) {
         return switch (errorCode) {
-            case SKIN_NOT_FOUND -> HttpStatus.NOT_FOUND;
-            case SKIN_ALREADY_EXISTS, OPTIMISTIC_LOCK_FAILURE -> HttpStatus.CONFLICT;
+            case SKIN_NOT_FOUND, USER_NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case SKIN_ALREADY_EXISTS, USER_ALREADY_EXISTS, OPTIMISTIC_LOCK_FAILURE -> HttpStatus.CONFLICT;
+            case VALIDATION_ERROR -> HttpStatus.BAD_REQUEST;
             default -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
     }

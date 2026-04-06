@@ -5,3 +5,9 @@ spring:
     url: jdbc:postgresql://localhost:5432/skins-marketplace
     username: postgres
     password: P@ssw0rd
+jwt:
+  secret: "aB3dE5fG7hJ9kL1nP2rT4vW6xY8zA0cC2eE4gG6iI8kK0mM"
+  expiration: 86400000
+admin:
+  username: ADMIN
+  password: ADMIN
