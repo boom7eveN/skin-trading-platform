@@ -3,6 +3,8 @@ spring:
     url: ${MARKET_DB_URL}
     username: ${MARKET_DB_USERNAME}
     password: ${MARKET_DB_PASSWORD}
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS}
 jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION}

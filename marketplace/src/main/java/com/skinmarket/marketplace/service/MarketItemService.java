@@ -1,15 +1,19 @@
 package com.skinmarket.marketplace.service;
 
 import com.skinmarket.marketplace.dto.marketitem.CreateMarketItemRequest;
+import com.skinmarket.marketplace.dto.marketitem.MarketItemPurchasedEvent;
 import com.skinmarket.marketplace.dto.marketitem.MarketItemResponse;
 import com.skinmarket.marketplace.dto.pagination.PaginationResult;
 import com.skinmarket.marketplace.entity.MarketItem;
+import com.skinmarket.marketplace.entity.OutboxEvent;
 import com.skinmarket.marketplace.entity.User;
 import com.skinmarket.marketplace.enums.MarketItemStatus;
+import com.skinmarket.marketplace.enums.OutboxEventType;
 import com.skinmarket.marketplace.exception.BusinessLogicException;
 import com.skinmarket.marketplace.exception.ErrorCode;
 import com.skinmarket.marketplace.mapper.MarketItemMapper;
 import com.skinmarket.marketplace.repository.MarketItemRepository;
+import com.skinmarket.marketplace.repository.OutboxRepository;
 import com.skinmarket.marketplace.repository.SkinRepository;
 import com.skinmarket.marketplace.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -24,22 +28,24 @@ public class MarketItemService {
     private final MarketItemRepository marketItemRepository;
     private final SkinRepository skinRepository;
     private final UserRepository userRepository;
+    private final OutboxRepository outboxRepository;
 
 
     public MarketItemService(
             MarketItemRepository marketItemRepository,
             SkinRepository skinRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            OutboxRepository outboxRepository) {
         this.marketItemRepository = marketItemRepository;
         this.skinRepository = skinRepository;
         this.userRepository = userRepository;
+        this.outboxRepository = outboxRepository;
     }
 
     @Transactional
     public MarketItemResponse createMarketItem(
             UUID sellerId,
             CreateMarketItemRequest createMarketItemRequest) {
-
 
 
         var maybeSkin = skinRepository.findSkinById(createMarketItemRequest.skinId())
@@ -137,6 +143,17 @@ public class MarketItemService {
         marketItemRepository.updateMarketItemStatusToSold(
                 marketItemId,
                 LocalDateTime.now()
+        );
+
+        outboxRepository.save(
+                OutboxEvent.create(
+                        marketItemId,
+                        OutboxEventType.MARKET_ITEM_PURCHASED,
+                        new MarketItemPurchasedEvent(
+                                marketItemId, sellerId, buyerId,
+                                marketItem.skinId(), marketItem.price(), marketItem.soldAt()
+                        ).toJson()
+                )
         );
 
         MarketItem updatedMarketItem = marketItemRepository.findMarketItemById(marketItemId)

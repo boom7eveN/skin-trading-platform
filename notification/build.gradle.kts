@@ -23,6 +23,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-liquibase")
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.21.2")
 	runtimeOnly("org.postgresql:postgresql")
 	testImplementation("org.springframework.boot:spring-boot-starter-data-jdbc-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-kafka-test")
