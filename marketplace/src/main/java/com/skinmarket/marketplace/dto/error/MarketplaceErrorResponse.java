@@ -1,4 +1,4 @@
-package com.skinmarket.marketplace.dto;
+package com.skinmarket.marketplace.dto.error;
 
 import com.skinmarket.marketplace.exception.ErrorCode;
 

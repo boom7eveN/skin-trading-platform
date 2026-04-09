@@ -1,6 +1,6 @@
 package com.skinmarket.marketplace.repository;
 
-import com.skinmarket.marketplace.dto.PaginationResult;
+import com.skinmarket.marketplace.dto.pagination.PaginationResult;
 import com.skinmarket.marketplace.entity.Skin;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -93,10 +93,10 @@ public class SkinRepository {
         int offset = (page - 1) * size;
 
         String dataSql = """
-                    SELECT id, name, weapon_type, rarity, base_price, version 
-                    FROM skins 
+                    SELECT id, name, weapon_type, rarity, base_price, version
+                    FROM skins
                     ORDER BY name
-                    LIMIT :limit 
+                    LIMIT :limit
                     OFFSET :offset
                 """;
 
@@ -110,7 +110,7 @@ public class SkinRepository {
         List<Skin> content = namedParameterJdbcTemplate.query(dataSql, params, SKIN_ROW_MAPPER);
         Integer totalElements = namedParameterJdbcTemplate.queryForObject(countSql, Map.of(), Integer.class);
 
-        return new PaginationResult<Skin>(content, page, size, totalElements);
+        return new PaginationResult<>(content, page, size, totalElements);
     }
 
 

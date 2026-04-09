@@ -2,6 +2,8 @@ package com.skinmarket.marketplace.config;
 
 import com.skinmarket.marketplace.entity.User;
 import com.skinmarket.marketplace.enums.UserRole;
+import com.skinmarket.marketplace.exception.BusinessLogicException;
+import com.skinmarket.marketplace.exception.ErrorCode;
 import com.skinmarket.marketplace.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -31,7 +33,7 @@ public class AdminInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (userRepository.findByUsername(adminUsername).isEmpty()) {
+        if (userRepository.findUserByUsername(adminUsername).isEmpty()) {
             User admin = new User(
                     UUID.randomUUID(),
                     adminUsername,
@@ -40,7 +42,11 @@ public class AdminInitializer implements CommandLineRunner {
                     UserRole.ADMIN,
                     10000L
             );
-            userRepository.createUser(admin);
+            if (!userRepository.createUser(admin))
+                throw new BusinessLogicException(
+                        ErrorCode.UNEXPECTED_ERROR,
+                        "Failed to create Admin user in AdminInitializer"
+                );
         }
     }
 }

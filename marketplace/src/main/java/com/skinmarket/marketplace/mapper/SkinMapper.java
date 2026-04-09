@@ -1,8 +1,8 @@
 package com.skinmarket.marketplace.mapper;
 
-import com.skinmarket.marketplace.dto.CreateSkinRequest;
-import com.skinmarket.marketplace.dto.SkinResponse;
-import com.skinmarket.marketplace.dto.UpdateSkinRequest;
+import com.skinmarket.marketplace.dto.skin.CreateSkinRequest;
+import com.skinmarket.marketplace.dto.skin.SkinResponse;
+import com.skinmarket.marketplace.dto.skin.UpdateSkinRequest;
 import com.skinmarket.marketplace.entity.Skin;
 
 import java.util.List;

@@ -1,8 +1,8 @@
 package com.skinmarket.marketplace.service;
 
-import com.skinmarket.marketplace.dto.AuthRequest;
-import com.skinmarket.marketplace.dto.AuthResponse;
-import com.skinmarket.marketplace.dto.UserRegisterRequest;
+import com.skinmarket.marketplace.dto.auth.AuthRequest;
+import com.skinmarket.marketplace.dto.auth.AuthResponse;
+import com.skinmarket.marketplace.dto.auth.UserRegisterRequest;
 import com.skinmarket.marketplace.entity.User;
 import com.skinmarket.marketplace.exception.BusinessLogicException;
 import com.skinmarket.marketplace.exception.ErrorCode;
@@ -36,7 +36,7 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(UserRegisterRequest request) {
-        if (userRepository.findByUsername(request.username()).isPresent()) {
+        if (userRepository.findUserByUsername(request.username()).isPresent()) {
             throw new BusinessLogicException(
                     ErrorCode.USER_ALREADY_EXISTS,
                     "Username already exists: " + request.username()
@@ -45,7 +45,11 @@ public class AuthService {
 
         String encodedPassword = passwordEncoder.encode(request.password());
         User user = UserMapper.toEntity(request, encodedPassword);
-        userRepository.createUser(user);
+        if (!userRepository.createUser(user))
+            throw new BusinessLogicException(
+                    ErrorCode.UNEXPECTED_ERROR,
+                    "Failed to create user while registration"
+            );
 
         String accessToken = jwtService.generateAccessToken(user.username(), user.id(), user.role().name());
         return UserMapper.toAuthResponse(user, accessToken);
@@ -56,7 +60,7 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(request.username(), request.password())
         );
 
-        User user = userRepository.findByUsername(request.username())
+        User user = userRepository.findUserByUsername(request.username())
                 .orElseThrow(() -> new BusinessLogicException(
                         ErrorCode.USER_NOT_FOUND,
                         "User not found: " + request.username()

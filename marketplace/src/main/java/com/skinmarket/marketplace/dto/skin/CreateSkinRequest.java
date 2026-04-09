@@ -1,4 +1,4 @@
-package com.skinmarket.marketplace.dto;
+package com.skinmarket.marketplace.dto.skin;
 
 import java.math.BigDecimal;
 

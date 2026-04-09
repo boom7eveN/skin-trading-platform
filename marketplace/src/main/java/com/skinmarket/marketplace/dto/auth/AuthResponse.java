@@ -1,4 +1,4 @@
-package com.skinmarket.marketplace.dto;
+package com.skinmarket.marketplace.dto.auth;
 
 import java.math.BigDecimal;
 import java.util.UUID;

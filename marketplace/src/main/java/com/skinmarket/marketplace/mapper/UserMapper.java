@@ -1,7 +1,8 @@
 package com.skinmarket.marketplace.mapper;
 
-import com.skinmarket.marketplace.dto.AuthResponse;
-import com.skinmarket.marketplace.dto.UserRegisterRequest;
+import com.skinmarket.marketplace.dto.auth.AuthResponse;
+import com.skinmarket.marketplace.dto.auth.UserRegisterRequest;
+import com.skinmarket.marketplace.dto.user.UserResponse;
 import com.skinmarket.marketplace.entity.User;
 import com.skinmarket.marketplace.enums.UserRole;
 
@@ -28,6 +29,15 @@ public class UserMapper {
                 user.username(),
                 user.role().name(),
                 user.balance()
+        );
+    }
+
+    public static UserResponse toResponse(User user) {
+        return new UserResponse(
+                user.id(),
+                user.username(),
+                user.balance(),
+                user.role().name()
         );
     }
 }

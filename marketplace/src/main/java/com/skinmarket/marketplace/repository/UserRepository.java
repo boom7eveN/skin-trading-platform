@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -20,7 +21,7 @@ public class UserRepository {
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
     }
 
-    public Optional<User> findByUsername(String username) {
+    public Optional<User> findUserByUsername(String username) {
         String sql = "SELECT id, username, password_hash, balance, role, version " +
                 "FROM users WHERE username = :username";
         List<User> users = namedParameterJdbcTemplate.query(sql, Map.of("username", username), USER_ROW_MAPPER);
@@ -39,6 +40,29 @@ public class UserRepository {
                 "balance", user.balance(),
                 "role", user.role().name(),
                 "version", user.version()
+        )) == 1;
+    }
+
+    public Optional<User> findUserById(UUID id) {
+        String sql = "SELECT id, username, password_hash, balance, role, version " +
+                "FROM users WHERE id = :id";
+        List<User> users = namedParameterJdbcTemplate.query(sql, Map.of("id", id), USER_ROW_MAPPER);
+        return users.stream().findFirst();
+    }
+
+    public Boolean updateUserBalanceWithOptimisticLock(UUID id, BigDecimal newBalance, long expectedVersion) {
+        String sql = """
+                UPDATE users
+                SET balance = :balance,
+                    version = version + 1
+                WHERE id = :id
+                AND version = :expectedVersion
+                """;
+
+        return namedParameterJdbcTemplate.update(sql, Map.of(
+                "id", id,
+                "balance", newBalance,
+                "expectedVersion", expectedVersion
         )) == 1;
     }
 

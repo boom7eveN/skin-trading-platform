@@ -61,6 +61,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/skin/*").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/skin/*").hasRole("ADMIN")
 
+                        .requestMatchers(HttpMethod.PATCH, "/user/*/balance").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .userDetailsService(userDetailsService)

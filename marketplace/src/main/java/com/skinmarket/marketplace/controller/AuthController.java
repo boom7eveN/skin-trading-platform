@@ -1,8 +1,8 @@
 package com.skinmarket.marketplace.controller;
 
-import com.skinmarket.marketplace.dto.AuthRequest;
-import com.skinmarket.marketplace.dto.AuthResponse;
-import com.skinmarket.marketplace.dto.UserRegisterRequest;
+import com.skinmarket.marketplace.dto.auth.AuthRequest;
+import com.skinmarket.marketplace.dto.auth.AuthResponse;
+import com.skinmarket.marketplace.dto.auth.UserRegisterRequest;
 import com.skinmarket.marketplace.service.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
