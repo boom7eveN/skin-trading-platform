@@ -6,7 +6,6 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 @Repository
@@ -18,13 +17,13 @@ public class OutboxRepository {
         this.jdbc = jdbc;
     }
 
-    public void save(OutboxEvent event) {
+    public boolean createOutboxEvent(OutboxEvent event) {
         String sql = """
                 INSERT INTO outbox_events(id, aggregate_id, event_type, payload, created_at, processed, retry_count)
                 VALUES (:id, :aggregateId, :eventType, :payload::jsonb, :createdAt, :processed, :retryCount)
                 """;
 
-        jdbc.update(sql, Map.of(
+        return jdbc.update(sql, Map.of(
                 "id", event.id(),
                 "aggregateId", event.aggregateId(),
                 "eventType", event.eventType().name(),
@@ -32,7 +31,7 @@ public class OutboxRepository {
                 "createdAt", event.createdAt(),
                 "processed", event.processed(),
                 "retryCount", event.retryCount()
-        ));
+        )) == 1;
     }
 
     public List<OutboxEvent> findUnprocessedEvents(Integer limit, Integer maxRetries) {

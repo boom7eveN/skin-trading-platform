@@ -9,6 +9,8 @@ import com.skinmarket.marketplace.entity.Skin;
 import com.skinmarket.marketplace.exception.BusinessLogicException;
 import com.skinmarket.marketplace.exception.ErrorCode;
 import com.skinmarket.marketplace.mapper.SkinMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,7 @@ import java.util.UUID;
 @Service
 public class SkinService {
     private final SkinRepository skinRepository;
+    private static final Logger LOGGER = LoggerFactory.getLogger(SkinService.class);
 
     public SkinService(SkinRepository skinRepository) {
         this.skinRepository = skinRepository;
@@ -25,11 +28,18 @@ public class SkinService {
 
     @Transactional
     public SkinResponse createSkin(CreateSkinRequest createSkinRequest) {
+
+        LOGGER.info("Creating new skin - name: {}, weaponType: {}, rarity: {}",
+                createSkinRequest.name(), createSkinRequest.weaponType(), createSkinRequest.rarity());
+
         skinRepository.findSkinByNameAndWeaponTypeAndRarity(
                 createSkinRequest.name(),
                 createSkinRequest.weaponType(),
                 createSkinRequest.rarity()
         ).ifPresent(existingSkin -> {
+            LOGGER.warn("Skin creation failed - duplicate skin: name={}, weaponType={}, rarity={}, existingId={}",
+                    createSkinRequest.name(), createSkinRequest.weaponType(),
+                    createSkinRequest.rarity(), existingSkin.id());
             throw new BusinessLogicException(
                     ErrorCode.SKIN_ALREADY_EXISTS,
                     String.format("Skin already exists with name='%s', weaponType='%s', rarity='%s'",
@@ -42,12 +52,16 @@ public class SkinService {
         Skin newSkin = SkinMapper.toEntity(createSkinRequest);
 
         if (!skinRepository.createSkin(newSkin)) {
+            LOGGER.error("Failed to create skin in database - name: {}, weaponType: {}, rarity: {}",
+                    createSkinRequest.name(), createSkinRequest.weaponType(), createSkinRequest.rarity());
             throw new BusinessLogicException(
                     ErrorCode.UNEXPECTED_ERROR,
                     "Failed to create skin"
             );
         }
 
+        LOGGER.info("Skin created successfully - id: {}, name: {}, weaponType: {}, rarity: {}",
+                newSkin.id(), newSkin.name(), newSkin.weaponType(), newSkin.rarity());
         return SkinMapper.toResponse(newSkin);
     }
 
@@ -73,11 +87,19 @@ public class SkinService {
 
     @Transactional
     public SkinResponse updateSkinById(UUID id, UpdateSkinRequest request) {
+
+        LOGGER.info("Updating skin - id: {}, new name: {}, new weaponType: {}, new rarity: {}",
+                id, request.name(), request.weaponType(), request.rarity());
+
+
         Skin existingSkin = skinRepository.findSkinById(id)
-                .orElseThrow(() -> new BusinessLogicException(
-                        ErrorCode.SKIN_NOT_FOUND,
-                        String.format("Skin with id %s not found", id)
-                ));
+                .orElseThrow(() -> {
+                    LOGGER.error("Skin with id {} not found", id);
+                            return new BusinessLogicException(
+                                    ErrorCode.SKIN_NOT_FOUND,
+                                    String.format("Skin with id %s not found", id));
+                        }
+                );
 
         if (!existingSkin.name().equals(request.name()) ||
                 !existingSkin.weaponType().equals(request.weaponType()) ||
@@ -87,6 +109,9 @@ public class SkinService {
                     request.weaponType(),
                     request.rarity()
             ).ifPresent(skin -> {
+                LOGGER.warn("Skin update failed - would create duplicate: name={}, weaponType={}, " +
+                                "rarity={}, existingId={}",
+                        request.name(), request.weaponType(), request.rarity(), skin.id());
                 throw new BusinessLogicException(
                         ErrorCode.SKIN_ALREADY_EXISTS,
                         String.format("Skin already exists with name='%s', weaponType='%s', rarity='%s'",
@@ -100,6 +125,8 @@ public class SkinService {
         Skin updatedSkin = SkinMapper.toEntity(id, request, existingSkin.version());
 
         if (!skinRepository.updateSkinWithOptimisticLock(updatedSkin)) {
+            LOGGER.warn("Optimistic lock failure when updating skin - id: {}, version: {}",
+                    id, existingSkin.version());
             throw new BusinessLogicException(
                     ErrorCode.OPTIMISTIC_LOCK_FAILURE,
                     "Skin was modified by another administrator. Please refresh and try again."
@@ -107,12 +134,17 @@ public class SkinService {
         }
 
         Skin newSkin = skinRepository.findSkinById(id).get();
+        LOGGER.info("Skin updated successfully - id: {}, name: {}, weaponType: {}, rarity: {}, new version: {}",
+                newSkin.id(), newSkin.name(), newSkin.weaponType(), newSkin.rarity(), newSkin.version());
         return SkinMapper.toResponse(newSkin);
     }
 
     @Transactional
     public void deleteSkinById(UUID id) {
+        LOGGER.info("Attempting to delete skin with id: {}", id);
+
         if (skinRepository.findSkinById(id).isEmpty()) {
+            LOGGER.warn("Skin not found with id: {}", id);
             throw new BusinessLogicException(
                     ErrorCode.SKIN_NOT_FOUND,
                     String.format("Skin with id %s not found for deletion", id)
@@ -120,11 +152,13 @@ public class SkinService {
         }
 
         if (!skinRepository.deleteSkinById(id)) {
+            LOGGER.error("Failed to delete skin from database - id: {}", id);
             throw new BusinessLogicException(
                     ErrorCode.UNEXPECTED_ERROR,
                     String.format("Failed to delete skin with id %s", id)
             );
         }
+        LOGGER.info("Skin deleted successfully - id: {}", id);
     }
 
     @Transactional

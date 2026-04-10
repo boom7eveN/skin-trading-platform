@@ -51,7 +51,7 @@ public class MarketItemRepository {
         return items.stream().findFirst();
     }
 
-    public void updateMarketItemStatusToSold(UUID id, LocalDateTime soldAt) {
+    public boolean updateMarketItemStatusToSoldById(UUID id, LocalDateTime soldAt) {
         String sql = """
             UPDATE market_items
             SET status = 'SOLD',
@@ -60,10 +60,10 @@ public class MarketItemRepository {
               AND status = 'ACTIVE'
             """;
 
-        jdbc.update(sql, Map.of(
+        return jdbc.update(sql, Map.of(
                 "id", id,
                 "soldAt", soldAt
-        ));
+        )) ==1;
 
     }
 
