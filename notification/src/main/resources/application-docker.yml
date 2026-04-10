@@ -7,5 +7,12 @@ spring:
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS}
     consumer:
       group-id: notification-group
+      auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.skinmarket.marketplace.dto.marketitem"
+        spring.json.value.default.type: "com.skinmarket.marketplace.dto.marketitem.MarketItemPurchasedEvent"
+      enable-auto-commit: false
+    listener:
+      ack-mode: manual
