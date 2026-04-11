@@ -30,7 +30,7 @@ services:
       JWT_EXPIRATION: 86400000
       ADMIN_USERNAME: "ADMIN"
       ADMIN_PASSWORD: "ADMIN"
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     ports:
       - "8080:8080"
     networks:
@@ -63,7 +63,7 @@ services:
       NOTIFICATION_DB_URL: jdbc:postgresql://notification-db:5432/notification_db
       NOTIFICATION_DB_USERNAME: postgres
       NOTIFICATION_DB_PASSWORD: P@ssw0rd
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       SERVER_PORT: 8081
     ports:
       - "8081:8081"

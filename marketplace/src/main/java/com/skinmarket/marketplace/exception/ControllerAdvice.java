@@ -1,6 +1,8 @@
 package com.skinmarket.marketplace.exception;
 
 import com.skinmarket.marketplace.dto.error.MarketplaceErrorResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -8,6 +10,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class ControllerAdvice {
+
+    private final static Logger LOGGER = LoggerFactory.getLogger(ControllerAdvice.class);
 
     @ExceptionHandler(BusinessLogicException.class)
     public ResponseEntity<MarketplaceErrorResponse> handleBusinessLogicException(BusinessLogicException ex) {
@@ -25,7 +29,7 @@ public class ControllerAdvice {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<MarketplaceErrorResponse> handleUnexpectedException(final Exception exception) {
-
+        LOGGER.error("UNHANDLED EXCEPTION CHECK MEEEEEEEE", exception);
         MarketplaceErrorResponse error = new MarketplaceErrorResponse(
                 ErrorCode.UNEXPECTED_ERROR,
                 exception.getMessage(),
