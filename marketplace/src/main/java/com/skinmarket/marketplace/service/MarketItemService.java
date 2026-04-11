@@ -170,10 +170,10 @@ public class MarketItemService {
             );
         }
 
-
+        LocalDateTime soldAt = LocalDateTime.now();
         boolean statusUpdated = marketItemRepository.updateMarketItemStatusToSoldById(
                 marketItemId,
-                LocalDateTime.now()
+                soldAt
         );
         if (!statusUpdated) {
             LOGGER.error("Failed to update market item status to SOLD: {}", marketItemId);
@@ -190,7 +190,7 @@ public class MarketItemService {
                         OutboxEventType.MARKET_ITEM_PURCHASED,
                         new MarketItemPurchasedEvent(
                                 marketItemId, sellerId, buyerId,
-                                marketItem.skinId(), marketItem.price(), marketItem.soldAt()
+                                marketItem.skinId(), marketItem.price(), soldAt
                         ).toJson()
                 )
         );

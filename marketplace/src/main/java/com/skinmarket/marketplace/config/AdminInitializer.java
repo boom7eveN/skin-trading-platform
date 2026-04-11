@@ -38,9 +38,9 @@ public class AdminInitializer implements CommandLineRunner {
                     UUID.randomUUID(),
                     adminUsername,
                     passwordEncoder.encode(adminPassword),
-                    BigDecimal.ZERO,
+                    BigDecimal.valueOf(10000),
                     UserRole.ADMIN,
-                    10000L
+                    0L
             );
             if (!userRepository.createUser(admin))
                 throw new BusinessLogicException(

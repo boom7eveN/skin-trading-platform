@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public record OutboxEvent(
         UUID id,
-        UUID aggregateId,
+        UUID aggregateId,//marketplaceitemid
         OutboxEventType eventType,
         String payload,
         LocalDateTime createdAt,
