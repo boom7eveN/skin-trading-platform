@@ -14,7 +14,8 @@ public record OutboxEvent(
         boolean processed,
         LocalDateTime processedAt,
         int retryCount,
-        String error
+        String lastError,
+        boolean isDeadLetter
 ) {
     public static OutboxEvent create(UUID aggregateId, OutboxEventType eventType, String payload) {
         return new OutboxEvent(
@@ -26,7 +27,8 @@ public record OutboxEvent(
                 false,
                 null,
                 0,
-                null
+                null,
+                false
         );
     }
 

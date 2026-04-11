@@ -9,7 +9,9 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class OutboxKafkaProducer {
@@ -29,18 +31,44 @@ public class OutboxKafkaProducer {
     @Scheduled(fixedRate = 60000)
     public void produce() {
         LOGGER.info("Started scheduled process : process outbox events");
-        List<OutboxEvent> events = outboxRepository.findUnprocessedPurchaseEventsByType(
+        List<OutboxEvent> outboxPurchaseEvents = outboxRepository.findUnprocessedOutboxEventsByType(
                 OUTBOX_LIMIT,
                 OUTBOX_MAX_RETRIES,
                 OutboxEventType.MARKET_ITEM_PURCHASED);
-        if (events.isEmpty()) {
+        if (outboxPurchaseEvents.isEmpty()) {
             LOGGER.info("No marketplace purchase events found");
             return;
         }
-        for (OutboxEvent event : events) {
-            LOGGER.info("Processing outbox event : {}", event);
-            kafkaTemplate.send(TOPIC, event.aggregateId().toString(), event.payload());
-            LOGGER.info("Sent to kafka event : {}", event);
+        for (OutboxEvent outboxPurchaseEvent: outboxPurchaseEvents) {
+            try {
+
+                LOGGER.info("Processing outbox event : {}", outboxPurchaseEvent);
+
+                kafkaTemplate.send(TOPIC, outboxPurchaseEvent.aggregateId().toString(), outboxPurchaseEvent.payload())
+                .get(10, TimeUnit.SECONDS);
+
+                outboxRepository.markAsProcessed(outboxPurchaseEvent.id(), LocalDateTime.now());
+
+                LOGGER.info("Sent to kafka event : {}", outboxPurchaseEvent);
+
+            } catch (Exception e) {
+
+                LOGGER.error("Failed to send event to Kafka: {}", outboxPurchaseEvent.id(), e);
+
+                int newRetryCount = outboxPurchaseEvent.retryCount() + 1;
+
+                if (newRetryCount >= OUTBOX_MAX_RETRIES) {
+
+                    outboxRepository.markAsDeadLetter(outboxPurchaseEvent.id(), e.getMessage());
+                    LOGGER.warn("Event marked as dead letter: {}, error: {}", outboxPurchaseEvent.id(), e.getMessage());
+
+                } else {
+
+                    outboxRepository.incrementRetryCount(outboxPurchaseEvent.id(), e.getMessage());
+                    LOGGER.warn("Event retry count increased: {}, retry: {}/{}",
+                            outboxPurchaseEvent.id(), newRetryCount, OUTBOX_MAX_RETRIES);
+                }
+            }
         }
 
     }

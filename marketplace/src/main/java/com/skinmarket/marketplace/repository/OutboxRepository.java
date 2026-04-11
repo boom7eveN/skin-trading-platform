@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Repository
@@ -34,18 +35,59 @@ public class OutboxRepository {
         )) == 1;
     }
 
-    public List<OutboxEvent> findUnprocessedPurchaseEventsByType(Integer limit, Integer maxRetries, OutboxEventType eventType) {
+    public List<OutboxEvent> findUnprocessedOutboxEventsByType(
+            Integer limit, Integer maxRetries, OutboxEventType eventType) {
         String sql = """
-                SELECT id, aggregate_id, event_type, payload, created_at, processed, processed_at, retry_count, error
+                SELECT id, aggregate_id, event_type, payload, created_at, processed, processed_at, retry_count,
+                       last_error, is_dead_letter
                 FROM outbox_events
-                WHERE processed = false AND retry_count < :maxRetries AND event_type = :eventType
+                WHERE NOT processed AND retry_count < :maxRetries AND event_type = :eventType AND NOT is_dead_letter
                 ORDER BY created_at
                 LIMIT :limit
                 FOR UPDATE SKIP LOCKED
                 """;
 
-        return jdbc.query(sql, Map.of("limit", limit, "maxRetries", maxRetries, "eventType", eventType.name()), OUTBOX_EVENT_MAPPER);
+        return jdbc.query(sql, Map.of(
+                "limit", limit,
+                "maxRetries", maxRetries,
+                "eventType", eventType.name()), OUTBOX_EVENT_MAPPER);
     }
+
+    public void markAsProcessed(UUID eventId, LocalDateTime processedAt) {
+        String sql = """
+                UPDATE outbox_events
+                SET processed = true,
+                    processed_at = :processedAt,
+                    last_error = NULL
+                WHERE id = :eventId
+                """;
+
+        jdbc.update(sql, Map.of("processedAt", processedAt, "eventId", eventId));
+    }
+
+    public void markAsDeadLetter(UUID eventId, String lastError) {
+        String sql = """
+            UPDATE outbox_events
+            SET is_dead_letter = true,
+                last_error = :lastError,
+                retry_count = retry_count + 1
+            WHERE id = :eventId
+            """;
+
+        jdbc.update(sql, Map.of("lastError", lastError, "eventId", eventId));
+    }
+
+    public void incrementRetryCount(UUID eventId, String lastError) {
+        String sql = """
+            UPDATE outbox_events
+            SET retry_count = retry_count + 1,
+                last_error = :lastError
+            WHERE id = :eventId
+            """;
+
+        jdbc.update(sql, Map.of("lastError", lastError, "eventId", eventId));
+    }
+
 
     private static final RowMapper<OutboxEvent> OUTBOX_EVENT_MAPPER = (rs, _) -> new OutboxEvent(
             rs.getObject("id", UUID.class),
@@ -58,6 +100,7 @@ public class OutboxRepository {
                     ? rs.getTimestamp("processed_at").toLocalDateTime()
                     : null,
             rs.getInt("retry_count"),
-            rs.getString("error")
+            rs.getString("last_error"),
+            rs.getBoolean("is_dead_letter")
     );
 }
